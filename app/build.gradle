@@ -73,7 +73,11 @@ android {
                     appIcon: "@mipmap/ic_launcher",
                     appIconRound: "@mipmap/ic_launcher_round"
             ]
-            signingConfig releaseKeyConfigured ? signingConfigs.release : signingConfigs.debug
+            if (project.hasProperty('unsignedRelease')) {
+                signingConfig null
+            } else {
+                signingConfig releaseKeyConfigured ? signingConfigs.release : signingConfigs.debug
+            }
         }
     }
 
