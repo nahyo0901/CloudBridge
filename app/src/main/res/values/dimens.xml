@@ -25,4 +25,5 @@
 
     <dimen name="settingsIconSize">38dp</dimen>
     <dimen name="settingsIconMargin">16dp</dimen>
+    <dimen name="status_badge_corner_radius">16dp</dimen>
 </resources>

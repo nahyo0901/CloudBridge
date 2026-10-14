@@ -69,6 +69,7 @@ import ca.pkay.rcloneexplorer.Fragments.FileExplorerFragment;
 import ca.pkay.rcloneexplorer.Fragments.LogFragment;
 import ca.pkay.rcloneexplorer.Fragments.PermissionFragment;
 import ca.pkay.rcloneexplorer.Fragments.RemotesFragment;
+import de.schuelken.cloudbridge.status.ServiceStatusFragment;
 import ca.pkay.rcloneexplorer.Fragments.TasksFragment;
 import ca.pkay.rcloneexplorer.Fragments.TriggerFragment;
 import ca.pkay.rcloneexplorer.Items.RemoteItem;
@@ -429,6 +430,7 @@ public class MainActivity extends AppCompatActivity
             case R.id.nav_tasks:
             case R.id.nav_trigger:
             case R.id.nav_logs:
+            case R.id.nav_status:
             case R.id.nav_permissions:
                 SharedPreferencesUtil.Companion.setLastOpenFragment(this, id);
                 break;
@@ -457,6 +459,9 @@ public class MainActivity extends AppCompatActivity
                 break;
             case R.id.nav_logs:
                 startLogFragment();
+                break;
+            case R.id.nav_status:
+                startStatusFragment();
                 break;
             case R.id.nav_permissions:
                 startPermissionFragment();
@@ -493,6 +498,10 @@ public class MainActivity extends AppCompatActivity
 
     private void startLogFragment() {
         startFragment(LogFragment.newInstance());
+    }
+
+    private void startStatusFragment() {
+        startFragment(new ServiceStatusFragment());
     }
 
     private void startPermissionFragment() {
