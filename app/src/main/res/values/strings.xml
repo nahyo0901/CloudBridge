@@ -701,4 +701,23 @@
     <string name="remote_options_content_description">Remote options</string>
     <string name="pinned_content_description">Pinned</string>
     <string name="no_log_entries">No sync log entries yet</string>
+    <string name="status_dashboard">Service status</string>
+    <string name="status_dashboard_title">Cloud service status</string>
+    <string name="status_dashboard_subtitle">Availability and response times from Cloud-Status</string>
+    <string name="status_loading">Loading service status…</string>
+    <string name="status_load_error">Couldn’t load service status. Check your connection and pull to retry.</string>
+    <string name="status_overall_up">All monitored services are operational</string>
+    <string name="status_overall_down">One or more services are unavailable</string>
+    <string name="status_overall_degraded">One or more services are degraded</string>
+    <string name="status_overall_unknown">Some service statuses are unknown</string>
+    <string name="status_updated">Updated %1$s</string>
+    <string name="status_response_time">Response time: %1$s</string>
+    <string name="status_uptime_periods">Uptime — 24h: %1$s   7d: %2$s\n30d: %3$s   1y: %4$s</string>
+    <string name="status_unknown_value">Unknown</string>
+    <string name="status_state_up">Operational</string>
+    <string name="status_state_down">Down</string>
+    <string name="status_state_degraded">Degraded</string>
+    <string name="status_open_service">Open service</string>
+    <string name="status_open_service_named">Open %1$s</string>
+    <string name="status_no_browser">No app is available to open this service.</string>
 </resources>
