@@ -1,8 +1,6 @@
 name: Android CI - Unsigned Release APK
 
 on:
-  push:
-    branches: [master]
   workflow_dispatch:
     inputs:
       reason:
