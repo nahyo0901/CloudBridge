@@ -1,9 +1,6 @@
-# CloudBridge - Rclone for Android
-[![license: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://github.com/thies2005/CloudBridge/blob/master/LICENSE) [![Latest Downloads](https://img.shields.io/github/downloads/thies2005/CloudBridge/latest/total)](https://github.com/thies2005/CloudBridge/releases) [![GitHub release](https://img.shields.io/github/v/release/thies2005/CloudBridge?include_prereleases)](https://github.com/thies2005/CloudBridge/releases/latest)
-[![Documentation](https://img.shields.io/badge/Documentation-GitHub_Pages-4aad4e)](https://thies2005.github.io/CloudBridge/)
-[![Android Lint](https://github.com/thies2005/CloudBridge/actions/workflows/lint.yml/badge.svg)](https://github.com/thies2005/CloudBridge/actions/workflows/lint.yml)
+# Placeholder app name - Rclone for Android
 A cloud file manager, powered by rclone.
-Visit [https://thies2005.github.io/CloudBridge/](https://thies2005.github.io/CloudBridge/) for more information!
+
 
 
 ## Screenshots
@@ -41,7 +38,7 @@ Visit [https://thies2005.github.io/CloudBridge/](https://thies2005.github.io/Clo
 
 ## Installation
 
-Grab the [latest version](https://github.com/thies2005/CloudBridge/releases/latest) of the signed APK and install it on your phone.
+Grab the [latest version](placeholder url) of the signed APK and install it on your phone.
 | CPU architecture | Where to find | APK identifier |
 |:---|:--|:---:|
 |ARM 32 Bit | older devices | ```armeabi-v7a``` |
@@ -50,13 +47,6 @@ Grab the [latest version](https://github.com/thies2005/CloudBridge/releases/late
 |Intel/AMD 64 Bit | some emulators | ```x86_64``` |
 
 If you don't know which version to pick use ```cloudbridge_v<version>-oss-universal-release.apk```. Most devices run ARM 64 Bit, and 64 Bit devices often can also run the respective 32 bit version at lower performance. The app runs on any phone, tablet or TV with Android 6 or newer, as long as you have a touchscreen or mouse.
-
-[<img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-    alt="Get it on Google Play"
-    height="80">](https://play.google.com/store/apps/details?id=de.schuelken.cloudbridge)
-
-## Usage
-[See the documentation](https://thies2005.github.io/CloudBridge/).
 
 
 ## Intents
@@ -93,7 +83,7 @@ The intent needs the following:
 
 
 ## Contact & Contributions
-Whether you have a question, found a bug, or have an idea for a new feature — you are welcome to write me at [136268370+thies2005@users.noreply.github.com](mailto:136268370+thies2005@users.noreply.github.com). Pull requests and feature requests are always welcome!
+
 
 ## Developing
 
@@ -120,9 +110,7 @@ This app is released under the terms of the [GPLv3 license](https://github.com/t
 
 
 ## About this app
-CloudBridge is a fork of [**Round-Sync**](https://github.com/newhinton/Round-Sync) by **Felix Nüsse**<sup>[newhinton](https://github.com/newhinton)</sup>, which is a fork of [**RCX**](https://github.com/x0b/rcx) by **x0b**<sup>[x0b](https://github.com/x0b)</sup>, which is itself a fork of [**rcloneExplorer**](https://github.com/patrykcoding/rcloneExplorer) by **Patryk Kaczmarkiewicz**<sup>[patrykcoding](https://github.com/patrykcoding)</sup>.
-
-CloudBridge was created to provide active maintenance, regular rclone updates, easy accessibility via releases on GitHub and Google Play, and extra features such as robust Internxt support.
+This app is a fork of [**CloudBridge**](https://github.com/thies2005/CloudBridge) by **thies2005**<sup>[thies2005](https://github.com/thies2005)</sup>, which is a fork of [**Round-Sync**](https://github.com/newhinton/Round-Sync) by **Felix Nüsse**<sup>[newhinton](https://github.com/newhinton)</sup>, which is  itself a fork of [**RCX**](https://github.com/x0b/rcx) by **x0b**<sup>[x0b](https://github.com/x0b)</sup>, which is itself a fork of [**rcloneExplorer**](https://github.com/patrykcoding/rcloneExplorer) by **Patryk Kaczmarkiewicz**<sup>[patrykcoding](https://github.com/patrykcoding)</sup>.
 
 If you want to convey a modified version (fork), we ask you to use a different name, app icon and package id as well as proper attribution to avoid user confusion.
 
@@ -131,4 +119,4 @@ If you want to convey a modified version (fork), we ask you to use a different n
 This fork adds explicit support and fixes for the following providers:
 - **Internxt**: Decentralized cloud storage. Included is a robust integration with automatic token renewal and state persistence to ensure the remote connection does not expire.
 - **Drime**: Cloud storage provider.
-- **Always up to date**: CloudBridge is regularly updated to the newest rclone version, so new providers, features and fixes arrive quickly.
+- **Always up to date**: (Placeholder App Name) is regularly updated to the newest rclone version, so new providers, features and fixes arrive quickly.
