@@ -64,11 +64,3 @@ jobs:
         run: |
           read -r -a GRADLE_ARGS <<< "$GRADLE_ARGS_INPUT"
           ./gradlew clean assembleOssDebug --no-build-cache --stacktrace "${GRADLE_ARGS[@]}"
-
-      - name: Upload clean debug APKs
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: cloudbridge-clean-debug-apks-${{ github.run_number }}
-          path: app/build/outputs/apk/oss/debug/*.apk
-          if-no-files-found: error
-          retention-days: 30
