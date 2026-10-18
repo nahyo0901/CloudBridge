@@ -55,7 +55,7 @@ The intent needs the following:
 
 | Intent          |                   Content                   |                 |
 |:----------------|:-------------------------------------------:|----------------:|
-| packageName     |           de.schuelken.cloudbridge            |                 |
+| packageName     |           io.github.howielyn.cloudbridge      |                 |
 | className       | ca.pkay.rcloneexplorer.Services.SyncService |                 |
 | Action          |                 START_TASK                  |                 |
 | Integer Extra   |                    task                     |        idOfTask |

@@ -20,7 +20,7 @@ Android cloud file manager wrapping [rclone](https://rclone.org). Fork of RCX / 
 | `safdav` | SAF/WebDAV bridge library (`io.github.x0b.safdav`) |
 
 - Package namespace: `ca.pkay.rcloneexplorer` (legacy from rcloneExplorer fork).
-- Application ID: `de.schuelken.cloudbridge`.
+- Application ID: `io.github.howielyn.cloudbridge`.
 - Newer code lives under `de.schuelken.cloudbridge.*`.
 - `app/src/rcx/` is an additional source set for RCX-specific utilities.
 - Product flavors are `oss` and `rs` in the `edition` dimension. Most work should target `oss` unless the task says otherwise.
