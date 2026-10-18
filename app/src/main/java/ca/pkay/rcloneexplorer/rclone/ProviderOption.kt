@@ -1,7 +1,7 @@
 package ca.pkay.rcloneexplorer.rclone
 
 import android.util.Log
-import de.schuelken.cloudbridge.extensions.tag
+import io.github.howielyn.cloudbridge.extensions.tag
 import org.json.JSONObject
 import java.util.Objects
 

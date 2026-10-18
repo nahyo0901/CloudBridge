@@ -5,7 +5,7 @@ import android.content.Intent
 import android.util.Log
 import ca.pkay.rcloneexplorer.Database.DatabaseHandler
 import ca.pkay.rcloneexplorer.workmanager.SyncManager
-import de.schuelken.cloudbridge.extensions.tag
+import io.github.howielyn.cloudbridge.extensions.tag
 
 
 /**

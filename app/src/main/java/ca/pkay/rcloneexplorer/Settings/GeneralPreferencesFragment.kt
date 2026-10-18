@@ -19,9 +19,9 @@ import ca.pkay.rcloneexplorer.Rclone
 import ca.pkay.rcloneexplorer.util.FLog
 import ca.pkay.rcloneexplorer.workmanager.EphemeralTaskManager
 import ca.pkay.rcloneexplorer.workmanager.SyncManager
-import de.schuelken.cloudbridge.extensions.TAG
-import de.schuelken.cloudbridge.settings.language.LanguagePicker
-import de.schuelken.cloudbridge.settings.preferences.FilesizePreference
+import io.github.howielyn.cloudbridge.extensions.TAG
+import io.github.howielyn.cloudbridge.settings.language.LanguagePicker
+import io.github.howielyn.cloudbridge.settings.preferences.FilesizePreference
 import es.dmoral.toasty.Toasty
 
 class GeneralPreferencesFragment : PreferenceFragmentCompat() {
