@@ -7,10 +7,10 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import ca.pkay.rcloneexplorer.Items.FileItem
 import ca.pkay.rcloneexplorer.Items.RemoteItem
-import de.schuelken.cloudbridge.notifications.implementations.DeleteWorkerNotification
-import de.schuelken.cloudbridge.notifications.implementations.DownloadWorkerNotification
-import de.schuelken.cloudbridge.notifications.implementations.MoveWorkerNotification
-import de.schuelken.cloudbridge.notifications.implementations.UploadWorkerNotification
+import io.github.howielyn.cloudbridge.notifications.implementations.DeleteWorkerNotification
+import io.github.howielyn.cloudbridge.notifications.implementations.DownloadWorkerNotification
+import io.github.howielyn.cloudbridge.notifications.implementations.MoveWorkerNotification
+import io.github.howielyn.cloudbridge.notifications.implementations.UploadWorkerNotification
 import java.io.File
 import java.util.UUID
 

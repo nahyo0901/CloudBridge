@@ -20,7 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import ca.pkay.rcloneexplorer.BuildConfig
-import de.schuelken.cloudbridge.extensions.tag
+import io.github.howielyn.cloudbridge.extensions.tag
 
 
 class PermissionManager(private var mContext: Context) {

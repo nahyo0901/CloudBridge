@@ -37,7 +37,7 @@
         tools:ignore="GoogleAppIndexingWarning,MissingTvBanner"
         tools:targetApi="33">
         <receiver
-            android:name="de.schuelken.cloudbridge.updates.UpdateUserchoiceReceiver"
+            android:name="io.github.howielyn.cloudbridge.updates.UpdateUserchoiceReceiver"
             android:enabled="true"
             android:exported="false" />
 

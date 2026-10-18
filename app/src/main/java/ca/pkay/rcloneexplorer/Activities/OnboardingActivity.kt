@@ -15,11 +15,11 @@ import androidx.preference.PreferenceManager
 import ca.pkay.rcloneexplorer.R
 import ca.pkay.rcloneexplorer.util.PermissionManager
 import com.github.appintro.AppIntro2
-import de.schuelken.cloudbridge.onboarding.IdentifiableAppIntroFragment
-import de.schuelken.cloudbridge.onboarding.IdentifiableSwitchAppIntroFragment
-import de.schuelken.cloudbridge.onboarding.SlideLeaveInterface
-import de.schuelken.cloudbridge.onboarding.SlideSwitchCallback
-import de.schuelken.cloudbridge.updates.UpdateChecker
+import io.github.howielyn.cloudbridge.onboarding.IdentifiableAppIntroFragment
+import io.github.howielyn.cloudbridge.onboarding.IdentifiableSwitchAppIntroFragment
+import io.github.howielyn.cloudbridge.onboarding.SlideLeaveInterface
+import io.github.howielyn.cloudbridge.onboarding.SlideSwitchCallback
+import io.github.howielyn.cloudbridge.updates.UpdateChecker
 
 
 class OnboardingActivity : AppIntro2(), SlideLeaveInterface, SlideSwitchCallback {

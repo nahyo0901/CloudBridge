@@ -26,8 +26,8 @@ import ca.pkay.rcloneexplorer.util.FLog
 import ca.pkay.rcloneexplorer.util.SyncLog
 import ca.pkay.rcloneexplorer.util.TransferLocks
 import ca.pkay.rcloneexplorer.util.WifiConnectivitiyUtil
-import de.schuelken.cloudbridge.extensions.tag
-import de.schuelken.cloudbridge.notifications.implementations.DownloadWorkerNotification
+import io.github.howielyn.cloudbridge.extensions.tag
+import io.github.howielyn.cloudbridge.notifications.implementations.DownloadWorkerNotification
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -42,9 +42,9 @@ import java.util.TimeZone
 import kotlin.random.Random
 import android.util.Log
 import android.webkit.MimeTypeMap
-import de.schuelken.cloudbridge.notifications.implementations.DeleteWorkerNotification
-import de.schuelken.cloudbridge.notifications.implementations.MoveWorkerNotification
-import de.schuelken.cloudbridge.notifications.implementations.UploadWorkerNotification
+import io.github.howielyn.cloudbridge.notifications.implementations.DeleteWorkerNotification
+import io.github.howielyn.cloudbridge.notifications.implementations.MoveWorkerNotification
+import io.github.howielyn.cloudbridge.notifications.implementations.UploadWorkerNotification
 
 
 class EphemeralWorker (private var mContext: Context, workerParams: WorkerParameters): Worker(mContext, workerParams) {

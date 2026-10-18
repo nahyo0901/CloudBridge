@@ -9,8 +9,8 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import ca.pkay.rcloneexplorer.R
 import ca.pkay.rcloneexplorer.util.FLog
-import de.schuelken.cloudbridge.extensions.tag
-import de.schuelken.cloudbridge.settings.preferences.ButtonPreference
+import io.github.howielyn.cloudbridge.extensions.tag
+import io.github.howielyn.cloudbridge.settings.preferences.ButtonPreference
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader

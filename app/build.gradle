@@ -27,7 +27,7 @@ android {
     defaultConfig {
         generatedDensities = []
         vectorDrawables.generatedDensities = []
-        applicationId 'de.schuelken.cloudbridge'
+        applicationId 'io.github.howielyn.cloudbridge'
         minSdkVersion 23
         compileSdk 36
         targetSdkVersion 36
