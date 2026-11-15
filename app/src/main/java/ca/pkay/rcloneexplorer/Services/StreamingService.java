@@ -73,6 +73,7 @@ public class StreamingService extends IntentService {
                 && authenticationPassword != null && !authenticationPassword.isEmpty();
         if ((resolvedBaseUrl == null || resolvedBaseUrl.isEmpty())
                 && !hasCredentials
+                && allowRemoteAccess
                 && (protocol == SERVE_HTTP || protocol == SERVE_WEBDAV)) {
             byte[] tokenBytes = new byte[16];
             new java.security.SecureRandom().nextBytes(tokenBytes);
