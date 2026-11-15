@@ -1,0 +1,1 @@
+Updated and verified the Gradle wrapper. Documented artwork provenance and corrected icon credits and remaining old branding. Removed unused legacy illustrations whose provenance could not be established.

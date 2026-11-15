@@ -1,0 +1,8 @@
+{
+  "id": "io.github.howielyn.cloudbridge",
+  "url": "https://github.com/nahyo0901/CloudBridge",
+  "author": "nahyo0901",
+  "name": "CloudBridge",
+  "preferredApkIndex": 0,
+  "additionalSettings": "{\"includePrereleases\":false,\"fallbackToOlderReleases\":false,\"sortMethodChoice\":\"date\",\"verifyLatestTag\":false,\"apkFilterRegEx\":\"^cloudbridge_v[0-9]+\\\\.[0-9]+\\\\.[0-9]+-oss-universal-release\\\\.apk$\",\"invertAPKFilter\":false,\"autoApkFilterByArch\":false,\"trackOnly\":false,\"versionDetection\":true}"
+}

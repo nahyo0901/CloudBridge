@@ -24,7 +24,7 @@ class AppUpdateNotification(private var mContext: Context) {
     companion object {
         var NOTIFICATION_CHANNEL_ID = "NOTIFICATION_CHANNEL_ID"
         var NOTIFICATION_ID = 63598
-        var RELEASES_URL = "https://github.com/thies2005/CloudBridge/releases/latest"
+        var RELEASES_URL = "https://github.com/nahyo0901/CloudBridge/releases/latest"
     }
 
     @SuppressLint("MissingPermission") // Handled by PermissionManager
