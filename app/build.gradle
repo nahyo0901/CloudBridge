@@ -4,7 +4,10 @@ apply plugin: 'kotlinx-serialization'
 
 android {
     // Manual and CI unsigned-release builds omit release signing.
-    def unsignedRelease = project.findProperty('unsignedRelease')?.toString()?.toBoolean() ?: false
+    compileSdk 36
+    def unsignedReleaseProperty = project.findProperty('unsignedRelease')?.toString()
+    def unsignedRelease = unsignedReleaseProperty != null &&
+            (unsignedReleaseProperty.isEmpty() || unsignedReleaseProperty.toBoolean())
     // Release signing: credentials come from a git-ignored keystore.properties
     // (local builds) or CB_* env vars (CI). Falls back to the debug key when
     // neither is present so fresh checkouts still build an installable APK.
@@ -35,7 +38,6 @@ android {
         vectorDrawables.generatedDensities = []
         applicationId 'io.github.howielyn.cloudbridge'
         minSdkVersion 23
-        compileSdk 36
         targetSdkVersion 36
         // CI overrides these for rolling development and stable builds.
         // Allocation is commit_count * 20 for development and
