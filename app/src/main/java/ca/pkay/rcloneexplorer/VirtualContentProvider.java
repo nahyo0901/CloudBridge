@@ -176,7 +176,7 @@ public class VirtualContentProvider extends SingleRootProvider {
 
     private void awaitRcdService() {
         long waitTime = 500;
-        while (waitTime > 0 && null != rcdService) {
+        while (waitTime > 0 && null == rcdService) {
             FLog.d(TAG, "acquireRcd: waiting for service");
             long waitStart = System.nanoTime();
             try {
@@ -221,10 +221,44 @@ public class VirtualContentProvider extends SingleRootProvider {
 
     }
 
+    static boolean isSafeDocumentPath(@Nullable String docId) {
+        if (docId == null || docId.isEmpty() || docId.indexOf('\\') >= 0 || docId.indexOf('\0') >= 0) {
+            return false;
+        }
+        String afterColon = docId;
+        int colonIdx = docId.indexOf(':');
+        if (colonIdx >= 0) {
+            afterColon = docId.substring(colonIdx + 1);
+        }
+        for (String segment : afterColon.split("/")) {
+            if (".".equals(segment) || "..".equals(segment)) {
+                return false;
+            }
+        }
+        for (String segment : docId.split("/")) {
+            if (".".equals(segment) || "..".equals(segment)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     // Required for OPEN_DOCUMENT_TREE
     @Override
     public boolean isChildDocument(String parentDocumentId, @NonNull String documentId) {
-        return documentId.startsWith(parentDocumentId);
+        if (!isSafeDocumentPath(parentDocumentId) || !isSafeDocumentPath(documentId)) {
+            return false;
+        }
+        String normParent = parentDocumentId.endsWith("/")
+                ? parentDocumentId.substring(0, parentDocumentId.length() - 1)
+                : parentDocumentId;
+        if (documentId.equals(normParent) || documentId.startsWith(normParent + "/")) {
+            return true;
+        }
+        if (normParent.endsWith(":") && documentId.startsWith(normParent)) {
+            return true;
+        }
+        return false;
     }
 
     @Override
@@ -423,8 +457,10 @@ public class VirtualContentProvider extends SingleRootProvider {
             String originalParentDocId = parentDocumentId;
             parentDocumentId = parentDocumentId.substring(ROOT_DOC_ID.length() + 1);
             String remoteName = getRemoteName(getShortId(originalParentDocId));
-            // TODO: missing guard if remote name is garbage => IllegalArgumentException
             RemoteItem remoteItem = getRemoteItem(remoteName);
+            if (remoteItem == null) {
+                throw new FileNotFoundException("Remote not found: " + remoteName);
+            }
             int idx = parentDocumentId.indexOf("/");
             String dirPath = -1 != idx ? parentDocumentId.substring(idx + 1) : "";
 
@@ -1113,7 +1149,7 @@ public class VirtualContentProvider extends SingleRootProvider {
      */
     @VisibleForTesting()
     static String getNoRootId(String rootedDocumentId) {
-        if (rootedDocumentId.length() < ROOT_DOC_ID.length() + 1) {
+        if (rootedDocumentId == null || rootedDocumentId.length() < ROOT_DOC_ID.length() + 1 || !isSafeDocumentPath(rootedDocumentId)) {
             throw new IllegalArgumentException("Invalid document id");
         }
         return rootedDocumentId.substring(ROOT_DOC_ID.length() + 1);
@@ -1209,8 +1245,9 @@ public class VirtualContentProvider extends SingleRootProvider {
         if (null == cachedItem) {
             FLog.v(TAG, "getFileItem: refresh meta for %s", documentId);
             String[] remote = documentId.split(":");
-            // TODO: missing guard if remote name is garbage => IllegalArgumentException
-            getRemoteItem(remote[0]);
+            if (remote.length == 0 || getRemoteItem(remote[0]) == null) {
+                return null;
+            }
             // retrieve parent dir path or root
             int idx = documentId.indexOf("/");
             int ldx = documentId.lastIndexOf("/");
@@ -1396,14 +1433,15 @@ public class VirtualContentProvider extends SingleRootProvider {
         return DocumentsContract.buildRootsUri(BuildConfig.VCP_AUTHORITY);
     }
 
+    @Nullable
     private RemoteItem getRemoteItem(String name) {
+        if (name == null) {
+            return null;
+        }
         RemoteItem item = remotes.get(name);
         if (null == item) {
             reloadRemotesIfRequired();
             item = remotes.get(name);
-            if (null == item) {
-                throw new IllegalArgumentException("Remote " + name + " does not exist");
-            }
         }
         return item;
     }

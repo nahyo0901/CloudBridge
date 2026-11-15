@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.UUID;
 import java.util.List;
 
 import ca.pkay.rcloneexplorer.Dialogs.Dialogs;
@@ -51,6 +52,14 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
     private Fragment fragment;
     private ArrayList<String> uploadList;
     private boolean isDataReady;
+    private boolean uploadQueued;
+    private CopyFile copyTask;
+
+    @Override
+    protected void onDestroy() {
+        if (isDataReady && !uploadQueued && copyTask != null) copyTask.clearStaging();
+        super.onDestroy();
+    }
 
     @Override
     protected void attachBaseContext(Context newBase) {
@@ -140,7 +149,8 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
             return;
         }
         isDataReady = false;
-        new CopyFile(this, uri).execute();
+        copyTask = new CopyFile(this, uri);
+        copyTask.execute();
     }
 
     private void copyFiles(Intent intent) {
@@ -150,7 +160,8 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
             return;
         }
         isDataReady = false;
-        new CopyFile(this, uris).execute();
+        copyTask = new CopyFile(this, uris);
+        copyTask.execute();
     }
 
 
@@ -195,8 +206,10 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
             super.onPostExecute(aVoid);
             Dialogs.dismissSilently(loadingDialog);
 
+            if (isFinishing() || isDestroyed()) return;
+            uploadQueued = true;
             for (String uploadFile : uploadList) {
-                EphemeralTaskManager.Companion.queueUpload(this.context, remote, uploadFile, path);
+                EphemeralTaskManager.Companion.queueUpload(this.context, remote, uploadFile, path, true);
             }
             finish();
         }
@@ -208,6 +221,8 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
         private static final String TAG = "SharingActvty/CopyFile";
         private Context context;
         private ArrayList<Uri> uris;
+        private final File staging = new File(new File(getCacheDir(), "share_staging"), UUID.randomUUID().toString());
+        private boolean duplicateName;
 
         CopyFile(Context context, Uri uri) {
             this.context = context;
@@ -223,6 +238,7 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
         @Override
         protected Boolean doInBackground(Void... voids) {
             boolean success = true;
+            if (!staging.mkdirs()) return false;
             for (Uri uri : uris) {
                 String fileName;
                 if (null == uri || null == uri.getScheme() || null == uri.getPath()) {
@@ -231,15 +247,44 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
                     continue;
                 }
 
+                if ("file".equalsIgnoreCase(uri.getScheme()) && uri.getPath() != null) {
+                    try {
+                        String canonicalSrc = new File(uri.getPath()).getCanonicalPath();
+                        String internalDataDir = new File(getApplicationInfo().dataDir).getCanonicalPath();
+                        if (canonicalSrc.equals(internalDataDir) || canonicalSrc.startsWith(internalDataDir + File.separator)) {
+                            FLog.e(TAG, "Copy error: rejected internal file URI");
+                            success = false;
+                            continue;
+                        }
+                    } catch (IOException e) {
+                        FLog.e(TAG, "Copy error: failed to canonicalize file URI", e);
+                        success = false;
+                        continue;
+                    }
+                }
+
                 try {
                     fileName = resolveName(uri);
                 } catch (SecurityException e) {
                     success = false;
                     continue;
                 }
-                // todo: encrypt external cache
-                File cacheDir = getExternalCacheDir();
-                File outFile = new File(cacheDir, fileName);
+                File outFile = new File(staging, fileName);
+                try {
+                    if (!outFile.getCanonicalPath().startsWith(staging.getCanonicalPath() + File.separator)) {
+                        success = false;
+                        continue;
+                    }
+                    if (!outFile.createNewFile()) {
+                        duplicateName = true;
+                        success = false;
+                        break;
+                    }
+                } catch (IOException e) {
+                    FLog.e(TAG, "Copy error: could not create staged file", e);
+                    success = false;
+                    continue;
+                }
                 try (InputStream in = getContentResolver().openInputStream(uri);
                      OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile), 64 * 1024)) {
                     if (null == in) {
@@ -258,7 +303,28 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
                     success = false;
                 }
             }
+            if (!success) clearStaging();
             return success;
+        }
+
+        private void clearStaging() {
+            File[] files = staging.listFiles();
+            if (files != null) for (File file : files) file.delete();
+            staging.delete();
+            uploadList.clear();
+        }
+
+        @NonNull
+        private String sanitizeFileName(@Nullable String rawName) {
+            if (rawName == null) {
+                return "unnamed";
+            }
+            String cleaned = rawName.replace('\\', '/');
+            String baseName = new File(cleaned).getName().trim();
+            if (baseName.isEmpty() || ".".equals(baseName) || "..".equals(baseName)) {
+                return "unnamed";
+            }
+            return baseName;
         }
 
         @NonNull
@@ -270,14 +336,14 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
                     if(index>=0) {
                         String name = cursor.getString(index);
                         if (null != name) {
-                            return name;
+                            return sanitizeFileName(name);
                         }
                     }
                 }
             }
             List<String> segments = uri.getPathSegments();
             if (segments.size() >= 1) {
-                return segments.get(segments.size() - 1);
+                return sanitizeFileName(segments.get(segments.size() - 1));
             }
             return "unnamed";
         }
@@ -285,8 +351,14 @@ public class SharingActivity extends AppCompatActivity implements ShareRemotesFr
         @Override
         protected void onPostExecute(Boolean success) {
             super.onPostExecute(success);
+            if (isFinishing() || isDestroyed()) {
+                clearStaging();
+                isDataReady = true;
+                return;
+            }
             if (!success) {
-                Toasty.error(context, getString(R.string.error_retrieving_files), Toast.LENGTH_LONG, true).show();
+                Toasty.error(context, getString(duplicateName ? R.string.share_duplicate_file_name
+                        : R.string.error_retrieving_files), Toast.LENGTH_LONG, true).show();
                 finish();
             }
             isDataReady = true;
