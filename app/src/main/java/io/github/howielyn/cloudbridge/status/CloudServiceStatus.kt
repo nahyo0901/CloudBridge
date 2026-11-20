@@ -6,7 +6,6 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonPrimitive
 
 enum class ServiceState {
     UP,
@@ -15,20 +14,51 @@ enum class ServiceState {
     UNKNOWN
 }
 
+enum class StatusPeriod(val label: String, val graphSuffix: String) {
+    DAY("24h", "-day"),
+    WEEK("7d", "-week"),
+    MONTH("30d", "-month"),
+    YEAR("1y", "-year"),
+    ALL("all", "")
+}
+
 data class CloudServiceStatus(
     val name: String,
+    val slug: String,
     val url: String,
     val state: ServiceState,
     val responseTimeMs: Long?,
+    val responseTimeDayMs: Long?,
+    val responseTimeWeekMs: Long?,
+    val responseTimeMonthMs: Long?,
+    val responseTimeYearMs: Long?,
+    val uptime: String?,
     val uptimeDay: String?,
     val uptimeWeek: String?,
     val uptimeMonth: String?,
     val uptimeYear: String?
-)
+) {
+    fun uptime(period: StatusPeriod): String? = when (period) {
+        StatusPeriod.DAY -> uptimeDay
+        StatusPeriod.WEEK -> uptimeWeek
+        StatusPeriod.MONTH -> uptimeMonth
+        StatusPeriod.YEAR -> uptimeYear
+        StatusPeriod.ALL -> uptime
+    }
+
+    fun responseTime(period: StatusPeriod): Long? =
+        when (period) {
+            StatusPeriod.DAY -> responseTimeDayMs
+            StatusPeriod.WEEK -> responseTimeWeekMs
+            StatusPeriod.MONTH -> responseTimeMonthMs
+            StatusPeriod.YEAR -> responseTimeYearMs
+            StatusPeriod.ALL -> responseTimeMs
+        }
+}
 
 internal object StatusSummaryParser {
     fun parse(json: String): List<CloudServiceStatus> {
-        val services = try {
+        val entries = try {
             Json.parseToJsonElement(json).jsonArray
         } catch (e: SerializationException) {
             throw e
@@ -36,14 +66,14 @@ internal object StatusSummaryParser {
             throw SerializationException("Expected a JSON array of services", e)
         }
 
-        return services.mapNotNull { element ->
-            val service = element as? JsonObject ?: return@mapNotNull null
-            val slug = service.string("slug")
-            val name = service.string("name") ?: slug ?: return@mapNotNull null
-            val responseTime = service.long("time")?.takeIf { it >= 0 }
+        return entries.mapNotNull { entry ->
+            val service = entry as? JsonObject ?: return@mapNotNull null
+            val slug = service.string("slug") ?: return@mapNotNull null
+            val name = service.string("name") ?: slug
 
             CloudServiceStatus(
                 name = name,
+                slug = slug,
                 url = service.string("url").orEmpty(),
                 state = when (service.string("status")?.lowercase()) {
                     "up" -> ServiceState.UP
@@ -51,7 +81,12 @@ internal object StatusSummaryParser {
                     "degraded" -> ServiceState.DEGRADED
                     else -> ServiceState.UNKNOWN
                 },
-                responseTimeMs = responseTime,
+                responseTimeMs = service.long("time"),
+                responseTimeDayMs = service.long("timeDay"),
+                responseTimeWeekMs = service.long("timeWeek"),
+                responseTimeMonthMs = service.long("timeMonth"),
+                responseTimeYearMs = service.long("timeYear"),
+                uptime = service.string("uptime"),
                 uptimeDay = service.string("uptimeDay"),
                 uptimeWeek = service.string("uptimeWeek"),
                 uptimeMonth = service.string("uptimeMonth"),
@@ -64,5 +99,5 @@ internal object StatusSummaryParser {
         (this[key] as? JsonPrimitive)?.contentOrNull
 
     private fun JsonObject.long(key: String): Long? =
-        (this[key] as? JsonPrimitive)?.contentOrNull?.toLongOrNull()
+        string(key)?.toLongOrNull()?.takeIf { it >= 0 }
 }

@@ -6,69 +6,56 @@ import org.junit.Test
 
 class StatusSummaryParserTest {
     @Test
-    fun parsesServiceMetricsAndStatus() {
-        val services = StatusSummaryParser.parse(
+    fun parsesStatusMetricsAndPeriodResponseTimes() {
+        val service = StatusSummaryParser.parse(
             """
             [{
               "name":"Catbox",
-              "url":"https://catbox.moe",
               "slug":"catbox",
+              "url":"https://catbox.moe",
               "status":"up",
+              "uptime":"97.85%",
               "uptimeDay":"100.00%",
-              "uptimeWeek":"99.50%",
-              "uptimeMonth":"98.00%",
-              "uptimeYear":"97.00%",
-              "time":586
+              "uptimeWeek":"100.00%",
+              "uptimeMonth":"97.65%",
+              "uptimeYear":"97.85%",
+              "time":570,
+              "timeDay":349,
+              "timeWeek":406,
+              "timeMonth":412,
+              "timeYear":570
             }]
             """.trimIndent()
-        )
+        ).single()
 
-        assertEquals(1, services.size)
-        assertEquals("Catbox", services[0].name)
-        assertEquals(ServiceState.UP, services[0].state)
-        assertEquals(586L, services[0].responseTimeMs)
-        assertEquals("100.00%", services[0].uptimeDay)
-        assertEquals("99.50%", services[0].uptimeWeek)
-        assertEquals("98.00%", services[0].uptimeMonth)
-        assertEquals("97.00%", services[0].uptimeYear)
+        assertEquals("Catbox", service.name)
+        assertEquals(ServiceState.UP, service.state)
+        assertEquals("97.85%", service.uptime(StatusPeriod.ALL))
+        assertEquals("100.00%", service.uptime(StatusPeriod.DAY))
+        assertEquals(349L, service.responseTime(StatusPeriod.DAY))
+        assertEquals(406L, service.responseTime(StatusPeriod.WEEK))
+        assertEquals(412L, service.responseTime(StatusPeriod.MONTH))
+        assertEquals(570L, service.responseTime(StatusPeriod.YEAR))
+        assertEquals(570L, service.responseTime(StatusPeriod.ALL))
     }
 
     @Test
-    fun recognizesDownAndDegradedAndFallsBackToUnknown() {
+    fun parsesOtherStatusesAndSkipsEntriesWithoutSlugs() {
         val services = StatusSummaryParser.parse(
             """
             [
-              {"name":"Down service","status":"down"},
-              {"name":"Slow service","status":"degraded"},
-              {"name":"Unrecognized service","status":"maintenance"}
+              {"name":"Missing slug","status":"up"},
+              {"name":"Unavailable","slug":"unavailable","status":"down"},
+              {"name":"Slow","slug":"slow","status":"degraded"},
+              {"name":"Other","slug":"other","status":"maintenance","time":-1}
             ]
             """.trimIndent()
         )
 
+        assertEquals(3, services.size)
         assertEquals(ServiceState.DOWN, services[0].state)
         assertEquals(ServiceState.DEGRADED, services[1].state)
         assertEquals(ServiceState.UNKNOWN, services[2].state)
-    }
-
-    @Test
-    fun usesSlugWhenNameIsMissingAndKeepsMissingMetricsUnknown() {
-        val service = StatusSummaryParser.parse(
-            """[{"slug":"google-drive","status":"up","time":-1}]"""
-        ).single()
-
-        assertEquals("google-drive", service.name)
-        assertNull(service.responseTimeMs)
-        assertNull(service.uptimeDay)
-        assertEquals("", service.url)
-    }
-
-    @Test
-    fun skipsMalformedEntriesWithoutDroppingValidServices() {
-        val services = StatusSummaryParser.parse(
-            """[null, {"status":"up"}, {"name":"Valid","status":"up"}]"""
-        )
-
-        assertEquals(1, services.size)
-        assertEquals("Valid", services.single().name)
+        assertNull(services[2].responseTimeMs)
     }
 }
