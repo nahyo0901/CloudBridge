@@ -1,174 +1,168 @@
 package io.github.howielyn.cloudbridge.status
 
-import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.res.Configuration
 import android.net.Uri
+import android.net.http.SslError
+import android.os.Build
 import android.os.Bundle
-import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
+import android.webkit.SslErrorHandler
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.Button
+import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
-import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import ca.pkay.rcloneexplorer.R
-import java.io.IOException
-import java.util.Date
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import ca.pkay.rcloneexplorer.util.MarkdownView
 
 class ServiceStatusFragment : Fragment() {
-    private val repository = StatusRepository()
-    private var loadJob: Job? = null
-
-    private lateinit var refreshLayout: SwipeRefreshLayout
-    private lateinit var serviceList: LinearLayout
-    private lateinit var loadingIndicator: ProgressBar
-    private lateinit var errorMessage: TextView
-    private lateinit var overallStatus: TextView
-    private lateinit var updatedAt: TextView
+    private var webView: WebView? = null
+    private var progressBar: ProgressBar? = null
+    private var errorContainer: View? = null
+    private var errorDetails: TextView? = null
+    private var secureConnectionFailed = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.fragment_service_status, container, false)
+    ): View {
+        val root = inflater.inflate(R.layout.fragment_service_status, container, false) as FrameLayout
+        val statusWebView = try {
+            WebView(webViewContext(requireContext()))
+        } catch (e: Exception) {
+            MarkdownView.closeOnMissingWebView(requireActivity(), e)
+            return root
+        }
+
+        webView = statusWebView
+        progressBar = root.findViewById(R.id.status_progress)
+        errorContainer = root.findViewById(R.id.status_error_container)
+        errorDetails = root.findViewById(R.id.status_error_details)
+
+        root.addView(
+            statusWebView,
+            0,
+            FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        )
+        root.findViewById<Button>(R.id.status_retry).setOnClickListener {
+            errorContainer?.visibility = View.GONE
+            statusWebView.loadUrl(STATUS_URL)
+        }
+
+        configureWebView(statusWebView)
+        statusWebView.loadUrl(STATUS_URL)
+
+        return root
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        refreshLayout = view.findViewById(R.id.status_refresh)
-        serviceList = view.findViewById(R.id.status_service_list)
-        loadingIndicator = view.findViewById(R.id.status_loading)
-        errorMessage = view.findViewById(R.id.status_error)
-        overallStatus = view.findViewById(R.id.status_overall)
-        updatedAt = view.findViewById(R.id.status_updated)
-        refreshLayout.setOnRefreshListener { loadStatus() }
-        loadStatus()
-    }
-
-    private fun loadStatus() {
-        loadJob?.cancel()
-        refreshLayout.isRefreshing = serviceList.childCount > 0
-        loadingIndicator.visibility = if (serviceList.childCount == 0) View.VISIBLE else View.GONE
-        errorMessage.visibility = View.GONE
-
-        loadJob = viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val services = withContext(Dispatchers.IO) { repository.fetchServices() }
-                renderServices(services)
-                updatedAt.text = getString(
-                    R.string.status_updated,
-                    DateFormat.getTimeFormat(requireContext()).format(Date())
-                )
-            } catch (e: IOException) {
-                errorMessage.visibility = View.VISIBLE
-                if (serviceList.childCount == 0) {
-                    overallStatus.setText(R.string.status_overall_unknown)
-                    overallStatus.setTextColor(statusColor(ServiceState.UNKNOWN))
+        super.onViewCreated(view, savedInstanceState)
+        requireActivity().onBackPressedDispatcher.addCallback(
+            viewLifecycleOwner,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    val currentWebView = webView
+                    if (currentWebView?.canGoBack() == true) {
+                        currentWebView.goBack()
+                    } else {
+                        isEnabled = false
+                        requireActivity().onBackPressedDispatcher.onBackPressed()
+                    }
                 }
-            } finally {
-                refreshLayout.isRefreshing = false
-                loadingIndicator.visibility = View.GONE
-            }
-        }
-    }
-
-    private fun renderServices(services: List<CloudServiceStatus>) {
-        serviceList.removeAllViews()
-        services.forEach { service ->
-            val card = layoutInflater.inflate(R.layout.item_service_status, serviceList, false)
-            card.findViewById<TextView>(R.id.service_name).text = service.name
-            card.findViewById<TextView>(R.id.service_state).apply {
-                text = stateLabel(service.state)
-                setTextColor(statusColor(service.state))
-                background = statusBadge(service.state)
-            }
-            card.findViewById<TextView>(R.id.service_url).text =
-                Uri.parse(service.url).host ?: service.url
-            card.findViewById<TextView>(R.id.service_response_time).text = getString(
-                R.string.status_response_time,
-                service.responseTimeMs?.let(::formatResponseTime)
-                    ?: getString(R.string.status_unknown_value)
-            )
-            card.findViewById<TextView>(R.id.service_uptime).text = getString(
-                R.string.status_uptime_periods,
-                service.uptimeDay ?: getString(R.string.status_unknown_value),
-                service.uptimeWeek ?: getString(R.string.status_unknown_value),
-                service.uptimeMonth ?: getString(R.string.status_unknown_value),
-                service.uptimeYear ?: getString(R.string.status_unknown_value)
-            )
-            card.findViewById<TextView>(R.id.service_action).setText(R.string.status_open_service)
-            card.contentDescription = getString(R.string.status_open_service_named, service.name)
-            card.setOnClickListener { openService(service) }
-            serviceList.addView(card)
-        }
-
-        val overall = when {
-            services.any { it.state == ServiceState.DOWN } -> ServiceState.DOWN
-            services.any { it.state == ServiceState.DEGRADED } -> ServiceState.DEGRADED
-            services.all { it.state == ServiceState.UP } -> ServiceState.UP
-            else -> ServiceState.UNKNOWN
-        }
-        overallStatus.setText(
-            when (overall) {
-                ServiceState.UP -> R.string.status_overall_up
-                ServiceState.DOWN -> R.string.status_overall_down
-                ServiceState.DEGRADED -> R.string.status_overall_degraded
-                ServiceState.UNKNOWN -> R.string.status_overall_unknown
             }
         )
-        overallStatus.setTextColor(statusColor(overall))
-        errorMessage.visibility = View.GONE
     }
 
-    private fun openService(service: CloudServiceStatus) {
-        val uri = Uri.parse(service.url)
-        if (uri.scheme != "https" && uri.scheme != "http") return
-        val intent = Intent(Intent.ACTION_VIEW, uri)
-        if (intent.resolveActivity(requireContext().packageManager) != null) {
-            startActivity(intent)
-        } else {
-            Toast.makeText(requireContext(), R.string.status_no_browser, Toast.LENGTH_SHORT).show()
+    @SuppressLint("SetJavaScriptEnabled")
+    private fun configureWebView(statusWebView: WebView) {
+        statusWebView.settings.apply {
+            javaScriptEnabled = true
+            domStorageEnabled = true
         }
-    }
-
-    private fun stateLabel(state: ServiceState): String = getString(
-        when (state) {
-            ServiceState.UP -> R.string.status_state_up
-            ServiceState.DOWN -> R.string.status_state_down
-            ServiceState.DEGRADED -> R.string.status_state_degraded
-            ServiceState.UNKNOWN -> R.string.status_unknown_value
-        }
-    )
-
-    private fun statusColor(state: ServiceState): Int = Color.parseColor(
-        when (state) {
-            ServiceState.UP -> "#2E7D32"
-            ServiceState.DOWN -> "#C62828"
-            ServiceState.DEGRADED -> "#EF6C00"
-            ServiceState.UNKNOWN -> "#616161"
-        }
-    )
-
-    private fun statusBadge(state: ServiceState) = GradientDrawable().apply {
-        setColor(Color.parseColor(
-            when (state) {
-                ServiceState.UP -> "#1A2E7D32"
-                ServiceState.DOWN -> "#1AC62828"
-                ServiceState.DEGRADED -> "#1AEF6C00"
-                ServiceState.UNKNOWN -> "#1A616161"
+        statusWebView.webViewClient = object : WebViewClient() {
+            override fun onPageStarted(view: WebView, url: String, favicon: android.graphics.Bitmap?) {
+                secureConnectionFailed = false
+                errorContainer?.visibility = View.GONE
+                progressBar?.visibility = View.VISIBLE
             }
-        ))
-        cornerRadius = resources.getDimension(R.dimen.status_badge_corner_radius)
+
+            override fun onPageFinished(view: WebView, url: String) {
+                progressBar?.visibility = View.GONE
+            }
+
+            override fun onReceivedError(
+                view: WebView,
+                request: WebResourceRequest,
+                error: android.webkit.WebResourceError
+            ) {
+                if (request.isForMainFrame && !secureConnectionFailed) {
+                    showError(R.string.status_web_connection_error)
+                }
+            }
+
+            override fun onReceivedSslError(
+                view: WebView,
+                handler: SslErrorHandler,
+                error: SslError
+            ) {
+                handler.cancel()
+                if (Uri.parse(error.url).host == STATUS_HOST) {
+                    secureConnectionFailed = true
+                    showError(R.string.status_web_ssl_error)
+                }
+            }
+        }
+        statusWebView.webChromeClient = object : WebChromeClient() {
+            override fun onProgressChanged(view: WebView, newProgress: Int) {
+                progressBar?.progress = newProgress
+                progressBar?.visibility = if (newProgress == 100) View.GONE else View.VISIBLE
+            }
+        }
     }
 
-    private fun formatResponseTime(milliseconds: Long): String =
-        if (milliseconds < 1000) "$milliseconds ms"
-        else String.format(java.util.Locale.getDefault(), "%.2f s", milliseconds / 1000.0)
+    private fun showError(detailsResId: Int) {
+        errorDetails?.setText(detailsResId)
+        errorContainer?.visibility = View.VISIBLE
+        progressBar?.visibility = View.GONE
+    }
+
+    private fun webViewContext(context: Context): Context =
+        if (Build.VERSION.SDK_INT == 22 || Build.VERSION.SDK_INT == 23) {
+            context.createConfigurationContext(Configuration())
+        } else {
+            context
+        }
+
+    override fun onDestroyView() {
+        webView?.apply {
+            stopLoading()
+            loadUrl("about:blank")
+            clearHistory()
+            removeAllViews()
+            destroy()
+        }
+        webView = null
+        progressBar = null
+        errorContainer = null
+        errorDetails = null
+        super.onDestroyView()
+    }
+
+    private companion object {
+        const val STATUS_HOST = "howielyn.github.io"
+        const val STATUS_URL = "https://howielyn.github.io/Cloud-Status/"
+    }
 }
